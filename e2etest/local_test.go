@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
-	peerstore "github.com/libp2p/go-libp2p-peerstore"
-	multiaddr "github.com/multiformats/go-multiaddr"
+	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/multiformats/go-multiaddr"
 	"github.com/stretchr/testify/require"
 
 	"github.com/iotexproject/go-pkgs/crypto"
@@ -88,7 +88,7 @@ func TestLocalCommit(t *testing.T) {
 		cfg,
 		func(_ context.Context, _ uint32, _ proto.Message) {
 		},
-		func(_ context.Context, _ uint32, _ peerstore.PeerInfo, _ proto.Message) {
+		func(_ context.Context, _ uint32, _ peer.AddrInfo, _ proto.Message) {
 		},
 	)
 	require.NotNil(p)

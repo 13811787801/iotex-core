@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
-	peerstore "github.com/libp2p/go-libp2p-peerstore"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
@@ -334,7 +334,7 @@ func New(
 		chain,
 		dao,
 		consensus,
-		blocksync.WithUnicastOutBound(func(ctx context.Context, peer peerstore.PeerInfo, msg proto.Message) error {
+		blocksync.WithUnicastOutBound(func(ctx context.Context, peer peer.AddrInfo, msg proto.Message) error {
 			ctx = p2p.WitContext(ctx, p2p.Context{ChainID: chain.ChainID()})
 			return p2pAgent.UnicastOutbound(ctx, peer, msg)
 		}),
@@ -524,7 +524,7 @@ func (cs *ChainService) HandleBlockSync(ctx context.Context, pbBlock *iotextypes
 }
 
 // HandleSyncRequest handles incoming sync request.
-func (cs *ChainService) HandleSyncRequest(ctx context.Context, peer peerstore.PeerInfo, sync *iotexrpc.BlockSync) error {
+func (cs *ChainService) HandleSyncRequest(ctx context.Context, peer peer.AddrInfo, sync *iotexrpc.BlockSync) error {
 	return cs.blocksync.ProcessSyncRequest(ctx, peer, sync)
 }
 

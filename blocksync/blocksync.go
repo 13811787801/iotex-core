@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
-	peerstore "github.com/libp2p/go-libp2p-peerstore"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"go.uber.org/zap"
 
 	"github.com/iotexproject/iotex-core/blockchain"
@@ -28,9 +28,9 @@ import (
 
 type (
 	// UnicastOutbound sends a unicast message to the given address
-	UnicastOutbound func(ctx context.Context, peer peerstore.PeerInfo, msg proto.Message) error
+	UnicastOutbound func(ctx context.Context, peer peer.AddrInfo, msg proto.Message) error
 	// Neighbors returns the neighbors' addresses
-	Neighbors func(ctx context.Context) ([]peerstore.PeerInfo, error)
+	Neighbors func(ctx context.Context) ([]peer.AddrInfo, error)
 )
 
 // BlockDAO represents the block data access object
@@ -68,7 +68,7 @@ type BlockSync interface {
 	lifecycle.StartStopper
 
 	TargetHeight() uint64
-	ProcessSyncRequest(ctx context.Context, peer peerstore.PeerInfo, sync *iotexrpc.BlockSync) error
+	ProcessSyncRequest(ctx context.Context, peer peer.AddrInfo, sync *iotexrpc.BlockSync) error
 	ProcessBlock(ctx context.Context, blk *block.Block) error
 	ProcessBlockSync(ctx context.Context, blk *block.Block) error
 	SyncStatus() string
@@ -182,7 +182,7 @@ func (bs *blockSyncer) ProcessBlockSync(_ context.Context, blk *block.Block) err
 }
 
 // ProcessSyncRequest processes a block sync request
-func (bs *blockSyncer) ProcessSyncRequest(ctx context.Context, peer peerstore.PeerInfo, sync *iotexrpc.BlockSync) error {
+func (bs *blockSyncer) ProcessSyncRequest(ctx context.Context, peer peer.AddrInfo, sync *iotexrpc.BlockSync) error {
 	end := bs.bc.TipHeight()
 	switch {
 	case sync.End < end:

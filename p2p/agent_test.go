@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
-	peerstore "github.com/libp2p/go-libp2p-peerstore"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/stretchr/testify/require"
 
 	"github.com/iotexproject/iotex-core/config"
@@ -47,7 +47,7 @@ func TestBroadcast(t *testing.T) {
 			counts[idx] = 1
 		}
 	}
-	u := func(_ context.Context, _ uint32, _ peerstore.PeerInfo, _ proto.Message) {}
+	u := func(_ context.Context, _ uint32, _ peer.AddrInfo, _ proto.Message) {}
 	bootnodePort := testutil.RandomPort()
 	cfg := config.Config{
 		Network: config.Network{Host: "127.0.0.1", Port: bootnodePort},
@@ -114,7 +114,7 @@ func TestUnicast(t *testing.T) {
 	var src string
 	var mutex sync.RWMutex
 	b := func(_ context.Context, _ uint32, _ proto.Message) {}
-	u := func(_ context.Context, _ uint32, peer peerstore.PeerInfo, msg proto.Message) {
+	u := func(_ context.Context, _ uint32, peer peer.AddrInfo, msg proto.Message) {
 		mutex.Lock()
 		defer mutex.Unlock()
 		testMsg, ok := msg.(*testingpb.TestPayload)

@@ -9,7 +9,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	block "github.com/iotexproject/iotex-core/blockchain/block"
 	iotexrpc "github.com/iotexproject/iotex-proto/golang/iotexrpc"
-	peerstore "github.com/libp2p/go-libp2p-peerstore"
+	peer "github.com/libp2p/go-libp2p-core/peer"
 	reflect "reflect"
 )
 
@@ -117,7 +117,7 @@ func (mr *MockBlockSyncMockRecorder) TargetHeight() *gomock.Call {
 }
 
 // ProcessSyncRequest mocks base method
-func (m *MockBlockSync) ProcessSyncRequest(ctx context.Context, peer peerstore.PeerInfo, sync *iotexrpc.BlockSync) error {
+func (m *MockBlockSync) ProcessSyncRequest(ctx context.Context, peer peer.AddrInfo, sync *iotexrpc.BlockSync) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ProcessSyncRequest", ctx, peer, sync)
 	ret0, _ := ret[0].(error)
@@ -156,4 +156,18 @@ func (m *MockBlockSync) ProcessBlockSync(ctx context.Context, blk *block.Block) 
 func (mr *MockBlockSyncMockRecorder) ProcessBlockSync(ctx, blk interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessBlockSync", reflect.TypeOf((*MockBlockSync)(nil).ProcessBlockSync), ctx, blk)
+}
+
+// SyncStatus mocks base method
+func (m *MockBlockSync) SyncStatus() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SyncStatus")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// SyncStatus indicates an expected call of SyncStatus
+func (mr *MockBlockSyncMockRecorder) SyncStatus() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncStatus", reflect.TypeOf((*MockBlockSync)(nil).SyncStatus))
 }

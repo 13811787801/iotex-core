@@ -15,7 +15,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/iotexproject/go-pkgs/hash"
 	"github.com/iotexproject/iotex-proto/golang/iotexrpc"
-	peerstore "github.com/libp2p/go-libp2p-peerstore"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -41,10 +41,10 @@ import (
 )
 
 var opts = []Option{
-	WithUnicastOutBound(func(_ context.Context, _ peerstore.PeerInfo, msg proto.Message) error {
+	WithUnicastOutBound(func(_ context.Context, _ peer.AddrInfo, msg proto.Message) error {
 		return nil
 	}),
-	WithNeighbors(func(_ context.Context) ([]peerstore.PeerInfo, error) { return nil, nil }),
+	WithNeighbors(func(_ context.Context) ([]peer.AddrInfo, error) { return nil, nil }),
 }
 
 func TestNewBlockSyncer(t *testing.T) {
@@ -134,7 +134,7 @@ func TestBlockSyncerProcessSyncRequest(t *testing.T) {
 		Start: 1,
 		End:   1,
 	}
-	assert.NoError(bs.ProcessSyncRequest(context.Background(), peerstore.PeerInfo{}, pbBs))
+	assert.NoError(bs.ProcessSyncRequest(context.Background(), peer.AddrInfo{}, pbBs))
 }
 
 func TestBlockSyncerProcessSyncRequestError(t *testing.T) {
@@ -158,7 +158,7 @@ func TestBlockSyncerProcessSyncRequestError(t *testing.T) {
 		Start: 1,
 		End:   5,
 	}
-	require.Error(bs.ProcessSyncRequest(context.Background(), peerstore.PeerInfo{}, pbBs))
+	require.Error(bs.ProcessSyncRequest(context.Background(), peer.AddrInfo{}, pbBs))
 }
 
 func TestBlockSyncerProcessBlockTipHeight(t *testing.T) {

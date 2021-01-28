@@ -13,7 +13,7 @@ import (
 	"sync/atomic"
 
 	"github.com/golang/protobuf/proto"
-	peerstore "github.com/libp2p/go-libp2p-peerstore"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
@@ -31,7 +31,7 @@ type Subscriber interface {
 	HandleAction(context.Context, *iotextypes.Action) error
 	HandleBlock(context.Context, *iotextypes.Block) error
 	HandleBlockSync(context.Context, *iotextypes.Block) error
-	HandleSyncRequest(context.Context, peerstore.PeerInfo, *iotexrpc.BlockSync) error
+	HandleSyncRequest(context.Context, peer.AddrInfo, *iotexrpc.BlockSync) error
 	HandleConsensusMsg(*iotextypes.ConsensusMessage) error
 }
 
@@ -46,7 +46,7 @@ type Dispatcher interface {
 	HandleBroadcast(context.Context, uint32, proto.Message)
 	// HandleTell handles the incoming tell message. The transportation layer semantics is exact once. The sender is
 	// given for the sake of replying the message
-	HandleTell(context.Context, uint32, peerstore.PeerInfo, proto.Message)
+	HandleTell(context.Context, uint32, peer.AddrInfo, proto.Message)
 }
 
 var requestMtc = prometheus.NewCounterVec(
@@ -77,7 +77,7 @@ type blockSyncMsg struct {
 	ctx     context.Context
 	chainID uint32
 	sync    *iotexrpc.BlockSync
-	peer    peerstore.PeerInfo
+	peer    peer.AddrInfo
 }
 
 func (m blockSyncMsg) ChainID() uint32 {
@@ -294,7 +294,7 @@ func (d *IotxDispatcher) dispatchBlockCommit(ctx context.Context, chainID uint32
 }
 
 // dispatchBlockSyncReq adds the passed block sync request to the news handling queue.
-func (d *IotxDispatcher) dispatchBlockSyncReq(ctx context.Context, chainID uint32, peer peerstore.PeerInfo, msg proto.Message) {
+func (d *IotxDispatcher) dispatchBlockSyncReq(ctx context.Context, chainID uint32, peer peer.AddrInfo, msg proto.Message) {
 	if atomic.LoadInt32(&d.shutdown) != 0 {
 		return
 	}
@@ -340,7 +340,7 @@ func (d *IotxDispatcher) HandleBroadcast(ctx context.Context, chainID uint32, me
 }
 
 // HandleTell handles incoming unicast message
-func (d *IotxDispatcher) HandleTell(ctx context.Context, chainID uint32, peer peerstore.PeerInfo, message proto.Message) {
+func (d *IotxDispatcher) HandleTell(ctx context.Context, chainID uint32, peer peer.AddrInfo, message proto.Message) {
 	msgType, err := goproto.GetTypeFromRPCMsg(message)
 	if err != nil {
 		log.L().Warn("Unexpected message handled by HandleTell.", zap.Error(err))

@@ -18,17 +18,17 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
-	p2p "github.com/iotexproject/go-p2p"
-	peerstore "github.com/libp2p/go-libp2p-peerstore"
-	multiaddr "github.com/multiformats/go-multiaddr"
+	"github.com/iotexproject/go-p2p"
+	goproto "github.com/iotexproject/iotex-proto/golang"
+	"github.com/iotexproject/iotex-proto/golang/iotexrpc"
+	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/multiformats/go-multiaddr"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 
 	"github.com/iotexproject/iotex-core/config"
 	"github.com/iotexproject/iotex-core/pkg/log"
-	goproto "github.com/iotexproject/iotex-proto/golang"
-	"github.com/iotexproject/iotex-proto/golang/iotexrpc"
 )
 
 const (
@@ -72,7 +72,7 @@ type (
 	HandleBroadcastInbound func(context.Context, uint32, proto.Message)
 
 	// HandleUnicastInboundAsync handles unicast message when agent listens it from the network
-	HandleUnicastInboundAsync func(context.Context, uint32, peerstore.PeerInfo, proto.Message)
+	HandleUnicastInboundAsync func(context.Context, uint32, peer.AddrInfo, proto.Message)
 )
 
 // Agent is the agent to help the blockchain node connect into the P2P networks and send/receive messages
@@ -211,7 +211,7 @@ func (p *Agent) Start(ctx context.Context) error {
 			return
 		}
 		peerID = stream.Conn().RemotePeer().Pretty()
-		peerInfo := peerstore.PeerInfo{
+		peerInfo := peer.AddrInfo{
 			ID:    stream.Conn().RemotePeer(),
 			Addrs: []multiaddr.Multiaddr{stream.Conn().RemoteMultiaddr()},
 		}
@@ -264,6 +264,9 @@ func (p *Agent) Start(ctx context.Context) error {
 				}
 			case <-conn:
 				connNum++
+			case <-ctx.Done():
+				log.L().Info("p2p start abort.", zap.Error(ctx.Err()))
+				return nil
 			}
 			// can add more condition later
 			if connNum >= desiredConnNum {
@@ -279,6 +282,7 @@ func (p *Agent) Start(ctx context.Context) error {
 
 // Stop disconnects from P2P network
 func (p *Agent) Stop(ctx context.Context) error {
+	log.L().Info("p2p is shutting down.", zap.Error(ctx.Err()))
 	if p.host == nil {
 		return nil
 	}
@@ -326,7 +330,7 @@ func (p *Agent) BroadcastOutbound(ctx context.Context, msg proto.Message) (err e
 		err = errors.Wrap(err, "error when marshaling broadcast message")
 		return err
 	}
-	if err = p.host.Broadcast(broadcastTopic+p.topicSuffix, data); err != nil {
+	if err = p.host.Broadcast(ctx, broadcastTopic+p.topicSuffix, data); err != nil {
 		err = errors.Wrap(err, "error when sending broadcast message")
 		return err
 	}
@@ -334,7 +338,7 @@ func (p *Agent) BroadcastOutbound(ctx context.Context, msg proto.Message) (err e
 }
 
 // UnicastOutbound sends a unicast message to the given address
-func (p *Agent) UnicastOutbound(ctx context.Context, peer peerstore.PeerInfo, msg proto.Message) (err error) {
+func (p *Agent) UnicastOutbound(ctx context.Context, peer peer.AddrInfo, msg proto.Message) (err error) {
 	var (
 		peerName = peer.ID.Pretty()
 		msgType  iotexrpc.MessageType
@@ -387,14 +391,14 @@ func (p *Agent) UnicastOutbound(ctx context.Context, peer peerstore.PeerInfo, ms
 }
 
 // Info returns agents' peer info.
-func (p *Agent) Info() peerstore.PeerInfo { return p.host.Info() }
+func (p *Agent) Info() peer.AddrInfo { return p.host.Info() }
 
 // Self returns the self network address
 func (p *Agent) Self() []multiaddr.Multiaddr { return p.host.Addresses() }
 
 // Neighbors returns the neighbors' peer info
-func (p *Agent) Neighbors(ctx context.Context) ([]peerstore.PeerInfo, error) {
-	var res []peerstore.PeerInfo
+func (p *Agent) Neighbors(ctx context.Context) ([]peer.AddrInfo, error) {
+	var res []peer.AddrInfo
 	nbs, err := p.host.Neighbors(ctx)
 	if err != nil {
 		return nbs, err

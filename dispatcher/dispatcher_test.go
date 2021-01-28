@@ -12,7 +12,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/golang/protobuf/proto"
-	peerstore "github.com/libp2p/go-libp2p-peerstore"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/iotexproject/iotex-core/config"
@@ -81,7 +81,7 @@ func TestHandleTell(t *testing.T) {
 
 	for i := 0; i < 100; i++ {
 		for _, msg := range msgs {
-			d.HandleTell(ctx, config.Default.Chain.ID, peerstore.PeerInfo{}, msg)
+			d.HandleTell(ctx, config.Default.Chain.ID, peer.AddrInfo{}, msg)
 		}
 	}
 }
@@ -92,7 +92,7 @@ func (s *DummySubscriber) HandleBlock(context.Context, *iotextypes.Block) error 
 
 func (s *DummySubscriber) HandleBlockSync(context.Context, *iotextypes.Block) error { return nil }
 
-func (s *DummySubscriber) HandleSyncRequest(context.Context, peerstore.PeerInfo, *iotexrpc.BlockSync) error {
+func (s *DummySubscriber) HandleSyncRequest(context.Context, peer.AddrInfo, *iotexrpc.BlockSync) error {
 	return nil
 }
 
